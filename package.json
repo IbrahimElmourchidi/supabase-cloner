@@ -1,0 +1,17 @@
+{
+  "name": "supabase-cloner",
+  "private": true,
+  "type": "module",
+  "description": "Local web tool that backs up a Supabase project and restores it into another project (database, auth, storage, edge functions, secrets, cron).",
+  "scripts": {
+    "start": "node server.mjs",
+    "status": "node ctl.mjs status",
+    "watch": "node ctl.mjs wait"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "pg": "^8.13.0"
+  }
+}

@@ -1,0 +1,13 @@
+# Clone data: backups with personal data, secrets, progress and logs
+jobs/
+work/
+backup/
+
+# Dependencies
+node_modules/
+
+# Local files
+.env
+.env.*
+*.log
+.DS_Store

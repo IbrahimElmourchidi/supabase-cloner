@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Supabase Cloner</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="top">
+    <div>
+      <h1>Supabase Cloner</h1>
+      <p class="sub">Phase A copies the old project to this computer and only reads from it. Phase B fills the new project from that copy.</p>
+      <div class="jobbar">
+        <label class="small">Clone <select id="job"></select></label>
+        <button type="button" id="new-job" class="secondary small">New clone</button>
+        <span id="job-dir" class="muted small"></span>
+      </div>
+    </div>
+    <div class="top-right">
+      <label class="check small" title="When a file or step fails, the tool pauses at once and waits for Resume.">
+        <input type="checkbox" id="pause-on-error"> Pause on any error</label>
+      <span id="watcher" class="pill pill-wait" title="When a watcher (node ctl.mjs …) last checked the status">no watcher</span>
+      <span id="conn" class="pill pill-wait">connecting…</span>
+      <button type="button" id="pause" class="secondary" hidden>Pause</button>
+      <button type="button" id="resume" class="primary" hidden>Resume</button>
+      <button type="button" id="stop" class="danger" hidden>Stop</button>
+    </div>
+    <div id="pausebar" class="pausebar" role="alert" hidden>
+      <strong id="pause-title">Paused</strong>
+      <span id="pause-reason"></span>
+    </div>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2><span class="n">1</span> Credentials</h2>
+      <p class="muted">Secrets stay on this computer. They are kept in memory only, unless you tick "Remember".
+        Saved secrets show as <em>saved</em>. Leave a field empty to keep the saved value.</p>
+      <form id="cfg" autocomplete="off">
+        <div class="grid2">
+          <fieldset class="side" data-side="old">
+            <legend>Old project <span class="tag tag-read">read only</span></legend>
+            <label>Project ref<input name="old.ref" spellcheck="false"></label>
+            <label>Database connection string <small>Dashboard → Connect → Session pooler</small>
+              <input name="old.dbUrl" spellcheck="false" placeholder="postgresql://postgres.ref:[YOUR-PASSWORD]@aws-…pooler.supabase.com:5432/postgres"></label>
+            <label>Database password<input name="old.dbPassword" type="password"></label>
+            <label>Secret key <small>sb_secret_… or legacy service_role</small><input name="old.secretKey" type="password"></label>
+            <button type="button" class="secondary" data-test="old">Save and test old project</button>
+            <ul class="checks" id="test-old"></ul>
+          </fieldset>
+          <fieldset class="side" data-side="new">
+            <legend>New project <span class="tag tag-write">gets written</span></legend>
+            <label>Project ref<input name="new.ref" spellcheck="false"></label>
+            <label>Database connection string <small>Dashboard → Connect → Session pooler</small>
+              <input name="new.dbUrl" spellcheck="false" placeholder="postgresql://postgres.ref:[YOUR-PASSWORD]@aws-…pooler.supabase.com:5432/postgres"></label>
+            <label>Database password<input name="new.dbPassword" type="password"></label>
+            <label>Secret key <small>sb_secret_… or legacy service_role</small><input name="new.secretKey" type="password"></label>
+            <button type="button" class="secondary" data-test="new">Save and test new project</button>
+            <ul class="checks" id="test-new"></ul>
+          </fieldset>
+        </div>
+        <fieldset>
+          <legend>Account and options</legend>
+          <div class="grid2">
+            <label>Personal access token <small>supabase.com/dashboard/account/tokens</small><input name="pat" type="password"></label>
+            <label>Files at the same time <small>download / upload, 1–32</small><input name="concurrency" type="number" min="1" max="32"></label>
+            <label>Edge function code to deploy
+              <select name="functionsSource">
+                <option value="backup">Live code downloaded from the old project</option>
+                <option value="repo">Code from a repo folder (supabase/functions)</option>
+              </select></label>
+            <label>Repo folder <small>optional: a folder that has supabase/functions</small><input name="repoDir" spellcheck="false"></label>
+            <label class="check"><input type="checkbox" name="rememberSecrets"> Remember secrets on this computer (file readable only by you)</label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Secrets for the new project</legend>
+          <p class="muted" id="secrets-note"></p>
+          <div class="grid2" id="secret-list"></div>
+        </fieldset>
+        <div class="actions">
+          <button type="submit" class="primary">Save</button>
+          <button type="button" id="forget" class="secondary">Forget saved secrets</button>
+          <span id="saved" class="muted" role="status"></span>
+        </div>
+      </form>
+    </section>
+
+    <section class="card">
+      <div class="row">
+        <h2><span class="n">2</span> Phase A — Back up the old project</h2>
+        <button type="button" class="primary" data-phase="A">Run all of phase A</button>
+      </div>
+      <ol class="steps" id="steps-A"></ol>
+    </section>
+
+    <section class="card">
+      <div class="row">
+        <h2><span class="n">3</span> Phase B — Fill the new project</h2>
+        <button type="button" class="primary" data-phase="B">Run all of phase B</button>
+      </div>
+      <ol class="steps" id="steps-B"></ol>
+    </section>
+
+    <section class="card">
+      <h2><span class="n">4</span> Manual steps</h2>
+      <p class="muted">Only you can do these. Tick them when done (saved in this browser).</p>
+      <ul id="manual" class="manual"></ul>
+    </section>
+  </main>
+
+  <aside id="logpanel" hidden>
+    <div class="log-head">
+      <strong id="log-title">Log</strong>
+      <div>
+        <label class="check small"><input type="checkbox" id="log-follow" checked> follow</label>
+        <button type="button" class="secondary small" id="log-close">Close</button>
+      </div>
+    </div>
+    <pre id="log"></pre>
+  </aside>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
