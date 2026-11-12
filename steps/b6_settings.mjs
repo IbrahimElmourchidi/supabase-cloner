@@ -3,6 +3,7 @@ import { mgmt } from '../lib/mgmt.mjs';
 import { readJson, sha256 } from '../lib/util.mjs';
 import { registerSecret } from '../lib/scrub.mjs';
 import { AUTH_SECRET_KEY, FINGERPRINT, authSecretsNeeded } from '../lib/needed-secrets.mjs';
+import { stripPaidAuth } from '../lib/paid-features.mjs';
 import { requirePat, hosts, replaceHostDeep } from './common.mjs';
 
 /** PATCH the whole object; if refused, split it in halves to find the fields the API will not take. */
@@ -60,11 +61,15 @@ export default {
     const ref = cfg.new.ref;
     const rejected = [];
     const manual = [];
+    const paidOn = [];
 
     const auth = await readJson(paths.auth, null);
     if (auth) {
       const built = authBody(ctx, auth, cfg.secrets.auth || {}, oldHost, newHost);
       manual.push(...built.manual);
+      const paid = stripPaidAuth(auth, built.body);
+      if (paid.removed.length) ctx.log(`Not sent, because they belong to paid add-ons: ${paid.removed.join(', ')}.`);
+      paidOn.push(...paid.enabledInOld);
       const url = `/v1/projects/${ref}/config/auth`;
       ctx.log(`Copying ${Object.keys(built.body).length} auth settings…`);
       let refused = [];
@@ -111,8 +116,10 @@ export default {
 
     for (const r of rejected) ctx.warn(`Not copied: ${r}`);
     for (const m of manual) ctx.warn(`Not set: ${m}.`);
+    for (const p of paidOn) ctx.warn(`Not turned on: ${p}. The old project uses it, but it is a paid add-on. Turn it on by hand in the new dashboard if you want to pay for it.`);
     const summary = {
       'Auth fields refused': rejected.length,
+      'Paid add-ons left off': paidOn.join(', ') || 'none',
       'Secrets missing': manual.map((m) => m.split(' ')[0]).join(', ') || 'none',
     };
     if (manual.length) {

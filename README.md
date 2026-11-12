@@ -63,6 +63,12 @@ as a fingerprint. After A3, the page lists every one of them with a box. B5 and 
 stop until each has a value, and their logs say whether the value you typed matches
 the old one. Function secrets that are also stored in Vault are filled in for you.
 
+**Paid add-ons are never turned on.** Supabase can bill a project for an add-on as
+soon as one of its settings is sent, even with the value "off". B6 therefore never
+sends the settings of paid add-ons: Advanced MFA (WebAuthn / passkeys and phone) and
+the MFA and password verification attempt hooks. If the old project uses one of them,
+B6 warns you, and you turn it on by hand in the new dashboard.
+
 ## When something fails
 
 - Every step can be run again. Finished work is kept: files already downloaded or
